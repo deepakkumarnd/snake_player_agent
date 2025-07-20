@@ -28,3 +28,9 @@ def get_move(current_state: SnakeBoard):
     grid = current_state.grid
     print(grid)
     return {"direction": random.randint(1, 4)}
+
+
+@app.post("/snakes/feedback")
+def feedback(current_state: SnakeBoard, reward: int = 0):
+    grid = current_state.grid
+    return {}
