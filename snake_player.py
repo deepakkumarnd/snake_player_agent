@@ -48,25 +48,42 @@ class Agent:
         self.gamma = 0.6
         self.loss_f = nn.MSELoss()
         self.optimizer = optim.Adam(self.policy_model.parameters(), lr=0.1)
+        self.games = 0
+        self.loss_avg = None
+        self.epsilon = 1.0
+        self.min_epsilon = 0.05
+        self.epsilon_decay = 0.01
 
     def predict(self, grid) -> int:
-        x = self._grid_to_vector(grid)
-        output = self.model(x).squeeze(1)
-        action = torch.argmax(output).item()
+        explore = random.random()
+
+        if explore < self.epsilon:
+            print("Exploring")
+            action = random.randint(0, 3)
+        else:
+            print("Predicting")
+            x = self._grid_to_vector(grid)
+            output = self.model(x).squeeze(1)
+            action = torch.argmax(output).item()
+
+        self.epsilon = max(self.min_epsilon, self.epsilon * (1 - self.epsilon_decay))
         return action
 
     def feedback(self, grid, action, reward, next_grid, game_over):
-        print("Move =", action, "Reward =", reward, "game over=", game_over)
+        print("Move =", action, "Reward =", reward, "Game over=", game_over)
         current_state = self._grid_to_vector(grid)
         next_state = self._grid_to_vector(next_grid)
         self.history.add(current_state, action, reward, next_state, game_over)
+        if game_over:
+            self.games = self.games + 1
 
         if (len(self.history) % self.batch_size) == 0:
             print("Start training history len=", len(self.history))
             self.train()
 
     def train(self):
-        for _ in range(10):
+        losses = []
+        for _ in range(1000):
             states, actions, rewards, next_states, game_over = zip(*self.history.sample(self.batch_size))
             states = torch.cat(states)
             next_states = torch.cat(next_states)
@@ -79,13 +96,13 @@ class Agent:
             max_q_values = values.unsqueeze(1)
             fut_q_values = torch.tensor(rewards).unsqueeze(1) + self.gamma * max_q_values * (1 - dones)
             loss = self.loss_f(q_values.squeeze(1), fut_q_values.squeeze(1))
+            losses.append(loss.item())
             loss.backward()
             self.optimizer.step()
 
+        self.loss_avg = sum(losses) / len(losses)
+        print("Average loss =", self.loss_avg)
         self.model.load_state_dict(self.policy_model.state_dict())
-
-
-
 
     def _grid_to_vector(self, grid):
         flat_array = np.array(grid).flatten()

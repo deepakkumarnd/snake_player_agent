@@ -23,6 +23,12 @@ class NextMoveResponse(BaseModel):
     direction: int
 
 
+class StatsResponse(BaseModel):
+    games: int
+    loss_avg: float
+    epsilon: float
+
+
 @app.get("/")
 def root_path():
     return "ok"
@@ -46,3 +52,12 @@ def feedback(feedback_data: GameFeedback):
     action = feedback_data.move - 1
     agent.feedback(state, action, feedback_data.reward, next_state, feedback_data.game_over)
     return {}
+
+
+@app.get("/snakes/stats", response_model=StatsResponse, summary='Game stats')
+def get_stats():
+    return {
+        'games': agent.games,
+        'loss_avg': agent.loss_avg or 1000000,
+        'epsilon': agent.epsilon
+    }
