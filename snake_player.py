@@ -126,7 +126,7 @@ class Agent:
         if game_over:
             self.games = self.games + 1
 
-        if (len(self.history) > 1000) == 0:
+        if len(self.history) > 1000:
             print("Writing history to disk")
             self.history.write_to_disk()
             self.history.clear()
