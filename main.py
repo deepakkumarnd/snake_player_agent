@@ -61,5 +61,5 @@ def get_stats():
         'games': agent.games,
         'loss_avg': agent.loss_avg or 1000000,
         'epsilon': agent.epsilon,
-        'history': len(agent.history)
+        'history': agent.moves
     }
