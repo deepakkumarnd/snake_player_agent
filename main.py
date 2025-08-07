@@ -27,6 +27,7 @@ class StatsResponse(BaseModel):
     games: int
     loss_avg: float
     epsilon: float
+    history: int
 
 
 @app.get("/")
@@ -59,5 +60,6 @@ def get_stats():
     return {
         'games': agent.games,
         'loss_avg': agent.loss_avg or 1000000,
-        'epsilon': agent.epsilon
+        'epsilon': agent.epsilon,
+        'history': len(agent.history)
     }

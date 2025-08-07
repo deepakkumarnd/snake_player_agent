@@ -29,7 +29,8 @@ class SnakePlayerModel(nn.Module):
             nn.ReLU(),
             hidden_layer,
             nn.ReLU(),
-            output_layer
+            output_layer,
+            nn.Softmax()
         )
 
     def forward(self, x):
@@ -51,8 +52,8 @@ class Agent:
         self.games = 0
         self.loss_avg = None
         self.epsilon = 1.0
-        self.min_epsilon = 0.05
-        self.epsilon_decay = 0.01
+        self.min_epsilon = 0.1
+        self.epsilon_decay = 0.001
 
     def predict(self, grid) -> int:
         explore = random.random()
